@@ -14,6 +14,23 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('both');
 
+  // Lifted Venn diagram state for cross-component coordination
+  const [vennSelectedIds, setVennSelectedIds] = useState<number[]>([]);
+
+  // Handler to add a show to the Venn diagram from other components
+  const handleAddToVenn = (showId: number) => {
+    setVennSelectedIds(prev => {
+      if (prev.includes(showId)) return prev;
+      if (prev.length >= 5) {
+        // Replace the oldest selection
+        return [...prev.slice(1), showId];
+      }
+      return [...prev, showId];
+    });
+    // Switch to Compare view to show the result
+    setViewMode('compare');
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -126,6 +143,8 @@ function App() {
               shows={data.shows}
               writers={data.writers}
               links={data.links}
+              selectedIds={vennSelectedIds}
+              onSelectedIdsChange={setVennSelectedIds}
             />
           </section>
         )}
@@ -146,6 +165,8 @@ function App() {
               shows={data.shows}
               writers={data.writers}
               links={data.links}
+              onAddToVenn={handleAddToVenn}
+              selectedVennIds={vennSelectedIds}
             />
           </section>
         )}

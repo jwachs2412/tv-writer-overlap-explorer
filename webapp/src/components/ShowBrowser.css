@@ -317,21 +317,35 @@
 }
 
 .shared-writers-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.3rem 0;
 }
 
-.shared-writers-list .writer-link {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.writer-name-btn {
+  background: none;
+  border: none;
+  padding: 0;
   color: #a0a0b0;
-  text-decoration: none;
   font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-align: left;
+}
+
+.writer-name-btn:hover {
+  color: #64d2c8;
+}
+
+.imdb-mini-link {
+  color: #707090;
+  text-decoration: none;
   transition: color 0.2s;
 }
 
-.shared-writers-list .writer-link:hover {
-  color: #fff;
+.imdb-mini-link:hover {
+  color: #64d2c8;
 }
 
 .shared-writers-list .link-icon {
@@ -339,7 +353,7 @@
   opacity: 0.5;
 }
 
-.shared-writers-list .writer-link:hover .link-icon {
+.imdb-mini-link:hover .link-icon {
   opacity: 1;
 }
 

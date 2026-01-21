@@ -258,27 +258,46 @@
   line-height: 1.5;
 }
 
-.shared-writer-link {
-  color: #c0c0d0;
-  text-decoration: none;
-  font-size: 0.85rem;
-  display: inline-flex;
+/* Shared writer list items */
+.shared-writer-list li {
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
+}
+
+.writer-name-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #c0c0d0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-align: left;
+}
+
+.writer-name-btn:hover {
+  color: #64d2c8;
+}
+
+.imdb-mini-link {
+  color: #707090;
+  text-decoration: none;
+  font-size: 0.7rem;
   transition: color 0.2s;
 }
 
-.shared-writer-link:hover {
-  color: #fff;
+.imdb-mini-link:hover {
+  color: #64d2c8;
 }
 
 .link-arrow {
   font-size: 0.7rem;
-  opacity: 0.4;
+  opacity: 0.6;
   transition: opacity 0.2s;
 }
 
-.shared-writer-link:hover .link-arrow {
+.imdb-mini-link:hover .link-arrow {
   opacity: 1;
 }
 
@@ -405,18 +424,10 @@
 }
 
 .unique-writers-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   line-height: 1.5;
-}
-
-.unique-writer-link {
-  color: #c0c0d0;
-  text-decoration: none;
-  font-size: 0.85rem;
-  transition: color 0.2s;
-}
-
-.unique-writer-link:hover {
-  color: #fff;
 }
 
 .more-indicator {

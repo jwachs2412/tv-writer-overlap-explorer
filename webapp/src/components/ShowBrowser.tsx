@@ -6,12 +6,15 @@
 import { useState, useMemo } from 'react';
 import type { Show, Writer, ShowWriterLink, ShowWithWriters } from '../core/types';
 import { enrichShowsWithWriters, getSharedWriters } from '../core/overlap';
+import { WriterShowsModal } from './WriterShowsModal';
 import './ShowBrowser.css';
 
 interface ShowBrowserProps {
   readonly shows: ReadonlyArray<Show>;
   readonly writers: ReadonlyArray<Writer>;
   readonly links: ReadonlyArray<ShowWriterLink>;
+  readonly onAddToVenn?: (showId: number) => void;
+  readonly selectedVennIds?: ReadonlyArray<number>;
 }
 
 interface RelatedShow {
@@ -23,10 +26,17 @@ interface RelatedShow {
 const imdbShowUrl = (imdbId: string) => `https://www.imdb.com/title/${imdbId}/`;
 const imdbWriterUrl = (imdbId: string) => `https://www.imdb.com/name/${imdbId}/`;
 
-export const ShowBrowser = ({ shows, writers, links }: ShowBrowserProps) => {
+export const ShowBrowser = ({
+  shows,
+  writers,
+  links,
+  onAddToVenn,
+  selectedVennIds = [],
+}: ShowBrowserProps) => {
   const [selectedShowId, setSelectedShowId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedWriters, setExpandedWriters] = useState<number | null>(null);
+  const [selectedWriter, setSelectedWriter] = useState<Writer | null>(null);
 
   const enrichedShows = useMemo(
     () => enrichShowsWithWriters(shows, writers, links),
@@ -188,13 +198,19 @@ export const ShowBrowser = ({ shows, writers, links }: ShowBrowserProps) => {
                           <ul className="shared-writers-list">
                             {sharedWriters.map(writer => (
                               <li key={writer.id}>
+                                <button
+                                  onClick={() => setSelectedWriter(writer)}
+                                  className="writer-name-btn"
+                                >
+                                  {writer.name}
+                                </button>
                                 <a
                                   href={imdbWriterUrl(writer.imdbId)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="writer-link"
+                                  className="imdb-mini-link"
+                                  title="View on IMDB"
                                 >
-                                  {writer.name}
                                   <span className="link-icon">↗</span>
                                 </a>
                               </li>
@@ -219,6 +235,22 @@ export const ShowBrowser = ({ shows, writers, links }: ShowBrowserProps) => {
           )}
         </div>
       </div>
+
+      {/* Writer Shows Modal */}
+      {selectedWriter && (
+        <WriterShowsModal
+          writer={selectedWriter}
+          shows={shows}
+          links={links}
+          selectedVennIds={selectedVennIds}
+          onClose={() => setSelectedWriter(null)}
+          onAddToVenn={(showId) => {
+            if (onAddToVenn) {
+              onAddToVenn(showId);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

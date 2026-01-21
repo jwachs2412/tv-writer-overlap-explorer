@@ -1,0 +1,231 @@
+.writer-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.writer-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.writer-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.writer-info h2 {
+  margin: 0 0 0.5rem 0;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.writer-info .imdb-link {
+  color: #64d2c8;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.writer-info .imdb-link:hover {
+  color: #8fe8df;
+  text-decoration: underline;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #a0a0b0;
+  font-size: 1.75rem;
+  line-height: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.writer-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.writer-modal-content h3 {
+  margin: 0 0 1rem 0;
+  color: #a0a0b0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.writer-modal-content .show-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.writer-modal-content .show-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s;
+}
+
+.writer-modal-content .show-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.show-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.show-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.show-details .show-title {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.show-details .show-title:hover {
+  color: #64d2c8;
+}
+
+.show-years {
+  color: #707090;
+  font-size: 0.85rem;
+}
+
+.show-meta {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.episode-count,
+.role {
+  color: #808090;
+  font-size: 0.8rem;
+}
+
+.episode-count {
+  background: rgba(100, 210, 200, 0.15);
+  color: #64d2c8;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.add-to-venn-btn {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea, #5a6fd6);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.add-to-venn-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7a8ff0, #667eea);
+  transform: translateY(-1px);
+}
+
+.add-to-venn-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.add-to-venn-btn.in-venn {
+  background: rgba(100, 210, 200, 0.2);
+  color: #64d2c8;
+}
+
+/* Scrollbar */
+.writer-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.writer-modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.writer-modal-content::-webkit-scrollbar-thumb {
+  background: #4a4a6e;
+  border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .writer-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .writer-modal {
+    max-height: 90vh;
+  }
+
+  .writer-modal-header,
+  .writer-modal-content {
+    padding: 1rem;
+  }
+
+  .writer-modal-content .show-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .add-to-venn-btn {
+    width: 100%;
+  }
+}

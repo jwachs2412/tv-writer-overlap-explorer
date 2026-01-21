@@ -6,13 +6,17 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import type { Show, Writer, ShowWriterLink, ShowWithWriters } from '../core/types';
-import { enrichShowsWithWriters, getSharedWriters } from '../core/overlap';
+import { enrichShowsWithWriters } from '../core/overlap';
+import { WriterShowsModal } from './WriterShowsModal';
 import './VennDiagram.css';
 
 interface VennDiagramProps {
   readonly shows: ReadonlyArray<Show>;
   readonly writers: ReadonlyArray<Writer>;
   readonly links: ReadonlyArray<ShowWriterLink>;
+  readonly selectedIds?: ReadonlyArray<number>;
+  readonly onSelectedIdsChange?: (ids: number[]) => void;
+  readonly onAddToVenn?: (showId: number) => void;
 }
 
 interface CircleData {
@@ -24,18 +28,43 @@ interface CircleData {
   uniqueWriters: ReadonlyArray<Writer>;
 }
 
-const COLORS = ['#667eea', '#f093fb', '#64d2c8'];
+const COLORS = ['#667eea', '#f093fb', '#64d2c8', '#ffa726', '#ab47bc'];
 const GRADIENTS = [
   ['#667eea', '#5a6fd6'],
   ['#f093fb', '#d580e8'],
   ['#64d2c8', '#4fc3b8'],
+  ['#ffa726', '#fb8c00'],
+  ['#ab47bc', '#8e24aa'],
 ];
 
 const imdbShowUrl = (imdbId: string) => `https://www.imdb.com/title/${imdbId}/`;
 const imdbWriterUrl = (imdbId: string) => `https://www.imdb.com/name/${imdbId}/`;
 
-export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+export const VennDiagram = ({
+  shows,
+  writers,
+  links,
+  selectedIds: controlledSelectedIds,
+  onSelectedIdsChange,
+  onAddToVenn,
+}: VennDiagramProps) => {
+  // Internal state for uncontrolled mode
+  const [internalSelectedIds, setInternalSelectedIds] = useState<number[]>([]);
+  const [selectedWriter, setSelectedWriter] = useState<Writer | null>(null);
+
+  // Use controlled or internal state
+  const isControlled = controlledSelectedIds !== undefined;
+  const selectedIds = isControlled ? [...controlledSelectedIds] : internalSelectedIds;
+
+  const setSelectedIds = (updater: number[] | ((prev: number[]) => number[])) => {
+    const newIds = typeof updater === 'function' ? updater(selectedIds) : updater;
+    if (isControlled && onSelectedIdsChange) {
+      onSelectedIdsChange(newIds);
+    } else {
+      setInternalSelectedIds(newIds);
+    }
+  };
+
   const [expandedLists, setExpandedLists] = useState<Set<number>>(new Set());
   const [expandedIntersections, setExpandedIntersections] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,7 +96,7 @@ export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
       if (prev.includes(id)) {
         return prev.filter(x => x !== id);
       }
-      if (prev.length >= 3) {
+      if (prev.length >= 5) {
         return [...prev.slice(1), id];
       }
       return [...prev, id];
@@ -163,44 +192,122 @@ export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
     }
 
     // 3 circles - triangle arrangement
-    const r = baseRadius;
-    const spread = r * 0.7; // how far apart circle centers are
-    const textOffset = r * 0.5; // text positioned in unique area
-    return [
-      {
-        show: selectedShows[0],
-        cx: centerX,
-        cy: centerY - spread * 0.7,
+    if (selectedShows.length === 3) {
+      const r = baseRadius;
+      const spread = r * 0.7; // how far apart circle centers are
+      const textOffset = r * 0.5; // text positioned in unique area
+      return [
+        {
+          show: selectedShows[0],
+          cx: centerX,
+          cy: centerY - spread * 0.7,
+          r,
+          color: COLORS[0],
+          uniqueWriters: getUniqueWriters(selectedShows[0], [selectedShows[1], selectedShows[2]]),
+          textX: centerX,
+          textY: centerY - spread * 0.7 - textOffset,
+        },
+        {
+          show: selectedShows[1],
+          cx: centerX - spread,
+          cy: centerY + spread * 0.6,
+          r,
+          color: COLORS[1],
+          uniqueWriters: getUniqueWriters(selectedShows[1], [selectedShows[0], selectedShows[2]]),
+          textX: centerX - spread - textOffset * 0.7,
+          textY: centerY + spread * 0.6 + textOffset * 0.7,
+        },
+        {
+          show: selectedShows[2],
+          cx: centerX + spread,
+          cy: centerY + spread * 0.6,
+          r,
+          color: COLORS[2],
+          uniqueWriters: getUniqueWriters(selectedShows[2], [selectedShows[0], selectedShows[1]]),
+          textX: centerX + spread + textOffset * 0.7,
+          textY: centerY + spread * 0.6 + textOffset * 0.7,
+        },
+      ];
+    }
+
+    // 4 circles - 2x2 grid arrangement with overlapping centers
+    if (selectedShows.length === 4) {
+      const r = baseRadius * 0.85;
+      const spread = r * 0.6; // distance from center
+      const textOffset = r * 0.5;
+      const positions = [
+        { dx: -spread, dy: -spread * 0.7, tx: -1, ty: -1 },
+        { dx: spread, dy: -spread * 0.7, tx: 1, ty: -1 },
+        { dx: -spread, dy: spread * 0.7, tx: -1, ty: 1 },
+        { dx: spread, dy: spread * 0.7, tx: 1, ty: 1 },
+      ];
+      return selectedShows.map((show, i) => {
+        const others = selectedShows.filter((_, idx) => idx !== i);
+        const pos = positions[i];
+        return {
+          show,
+          cx: centerX + pos.dx,
+          cy: centerY + pos.dy,
+          r,
+          color: COLORS[i],
+          uniqueWriters: getUniqueWriters(show, others),
+          textX: centerX + pos.dx + textOffset * 0.5 * pos.tx,
+          textY: centerY + pos.dy + textOffset * 0.5 * pos.ty,
+        };
+      });
+    }
+
+    // 5 circles - pentagon arrangement
+    const r = baseRadius * 0.75;
+    const spread = r * 0.8; // distance from center
+    const textOffset = r * 0.55;
+    // Pentagon angles: start from top (-90deg), go clockwise
+    const angles = [-90, -90 + 72, -90 + 144, -90 + 216, -90 + 288].map(a => (a * Math.PI) / 180);
+
+    return selectedShows.map((show, i) => {
+      const others = selectedShows.filter((_, idx) => idx !== i);
+      const angle = angles[i];
+      const cx = centerX + spread * Math.cos(angle);
+      const cy = centerY + spread * Math.sin(angle);
+      return {
+        show,
+        cx,
+        cy,
         r,
-        color: COLORS[0],
-        uniqueWriters: getUniqueWriters(selectedShows[0], [selectedShows[1], selectedShows[2]]),
-        textX: centerX,
-        textY: centerY - spread * 0.7 - textOffset,
-      },
-      {
-        show: selectedShows[1],
-        cx: centerX - spread,
-        cy: centerY + spread * 0.6,
-        r,
-        color: COLORS[1],
-        uniqueWriters: getUniqueWriters(selectedShows[1], [selectedShows[0], selectedShows[2]]),
-        textX: centerX - spread - textOffset * 0.7,
-        textY: centerY + spread * 0.6 + textOffset * 0.7,
-      },
-      {
-        show: selectedShows[2],
-        cx: centerX + spread,
-        cy: centerY + spread * 0.6,
-        r,
-        color: COLORS[2],
-        uniqueWriters: getUniqueWriters(selectedShows[2], [selectedShows[0], selectedShows[1]]),
-        textX: centerX + spread + textOffset * 0.7,
-        textY: centerY + spread * 0.6 + textOffset * 0.7,
-      },
-    ];
+        color: COLORS[i],
+        uniqueWriters: getUniqueWriters(show, others),
+        textX: cx + textOffset * Math.cos(angle) * 0.6,
+        textY: cy + textOffset * Math.sin(angle) * 0.6,
+      };
+    });
   };
 
   const circles = getCirclePositions();
+
+  // Helper to get writers in ALL of showsIn but NONE of showsOut
+  const getExclusiveSharedWriters = (
+    showsIn: ShowWithWriters[],
+    showsOut: ShowWithWriters[]
+  ): Writer[] => {
+    if (showsIn.length === 0) return [];
+
+    // Start with writers from the first show
+    let shared = [...showsIn[0].writers];
+
+    // Intersect with all other "in" shows
+    for (let i = 1; i < showsIn.length; i++) {
+      const writerIds = new Set(showsIn[i].writers.map(w => w.id));
+      shared = shared.filter(w => writerIds.has(w.id));
+    }
+
+    // Exclude writers from all "out" shows
+    for (const show of showsOut) {
+      const writerIds = new Set(show.writers.map(w => w.id));
+      shared = shared.filter(w => !writerIds.has(w.id));
+    }
+
+    return shared;
+  };
 
   const getIntersections = () => {
     if (selectedShows.length < 2) return [];
@@ -211,54 +318,33 @@ export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
       key: string;
     }> = [];
 
-    if (selectedShows.length === 2) {
-      const shared = getSharedWriters(selectedShows[0], selectedShows[1]);
-      if (shared.length > 0) {
-        result.push({
-          shows: [selectedShows[0], selectedShows[1]],
-          writers: shared,
-          key: `${selectedShows[0].id}-${selectedShows[1].id}`,
-        });
+    const n = selectedShows.length;
+
+    // Compute pairwise intersections (A∩B excluding all others)
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const showsIn = [selectedShows[i], selectedShows[j]];
+        const showsOut = selectedShows.filter((_, idx) => idx !== i && idx !== j);
+        const writers = getExclusiveSharedWriters(showsIn, showsOut);
+
+        if (writers.length > 0) {
+          result.push({
+            shows: showsIn,
+            writers,
+            key: `${selectedShows[i].id}-${selectedShows[j].id}`,
+          });
+        }
       }
     }
 
-    if (selectedShows.length === 3) {
-      const ab = getSharedWriters(selectedShows[0], selectedShows[1]);
-      const abOnly = ab.filter(w => !selectedShows[2].writers.some(w2 => w2.id === w.id));
-      if (abOnly.length > 0) {
-        result.push({
-          shows: [selectedShows[0], selectedShows[1]],
-          writers: abOnly,
-          key: `${selectedShows[0].id}-${selectedShows[1].id}`,
-        });
-      }
-
-      const ac = getSharedWriters(selectedShows[0], selectedShows[2]);
-      const acOnly = ac.filter(w => !selectedShows[1].writers.some(w2 => w2.id === w.id));
-      if (acOnly.length > 0) {
-        result.push({
-          shows: [selectedShows[0], selectedShows[2]],
-          writers: acOnly,
-          key: `${selectedShows[0].id}-${selectedShows[2].id}`,
-        });
-      }
-
-      const bc = getSharedWriters(selectedShows[1], selectedShows[2]);
-      const bcOnly = bc.filter(w => !selectedShows[0].writers.some(w2 => w2.id === w.id));
-      if (bcOnly.length > 0) {
-        result.push({
-          shows: [selectedShows[1], selectedShows[2]],
-          writers: bcOnly,
-          key: `${selectedShows[1].id}-${selectedShows[2].id}`,
-        });
-      }
-
-      const abc = ab.filter(w => selectedShows[2].writers.some(w2 => w2.id === w.id));
-      if (abc.length > 0) {
+    // Compute "all shows" intersection (writers in every selected show)
+    if (n >= 3) {
+      const allSharedWriters = getExclusiveSharedWriters(selectedShows.slice(), []);
+      if (allSharedWriters.length > 0) {
         result.push({
           shows: selectedShows.slice(),
-          writers: abc,
-          key: 'all-three',
+          writers: allSharedWriters,
+          key: 'all-shows',
         });
       }
     }
@@ -275,7 +361,7 @@ export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
         <div>
           <h2>Show Comparison</h2>
           <p className="description">
-            Select 2-3 shows to visualize their writer overlap
+            Select 2-5 shows to visualize their writer overlap
           </p>
         </div>
       </div>
@@ -512,13 +598,20 @@ export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
                     <ul className="unique-writers-list">
                       {writersToShow.map(w => (
                         <li key={w.id}>
+                          <button
+                            onClick={() => setSelectedWriter(w)}
+                            className="writer-name-btn"
+                          >
+                            {w.name}
+                          </button>
                           <a
                             href={imdbWriterUrl(w.imdbId)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="unique-writer-link"
+                            className="imdb-mini-link"
+                            title="View on IMDB"
                           >
-                            {w.name}
+                            ↗
                           </a>
                         </li>
                       ))}
@@ -577,13 +670,19 @@ export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
                       <ul className="shared-writer-list">
                         {writersToShow.map(w => (
                           <li key={w.id}>
+                            <button
+                              onClick={() => setSelectedWriter(w)}
+                              className="writer-name-btn"
+                            >
+                              {w.name}
+                            </button>
                             <a
                               href={imdbWriterUrl(w.imdbId)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="shared-writer-link"
+                              className="imdb-mini-link"
+                              title="View on IMDB"
                             >
-                              {w.name}
                               <span className="link-arrow">↗</span>
                             </a>
                           </li>
@@ -605,6 +704,29 @@ export const VennDiagram = ({ shows, writers, links }: VennDiagramProps) => {
         <div className="empty-state">
           <p>Select shows above to compare their writers</p>
         </div>
+      )}
+
+      {/* Writer Shows Modal */}
+      {selectedWriter && (
+        <WriterShowsModal
+          writer={selectedWriter}
+          shows={shows}
+          links={links}
+          selectedVennIds={selectedIds}
+          onClose={() => setSelectedWriter(null)}
+          onAddToVenn={(showId) => {
+            if (onAddToVenn) {
+              onAddToVenn(showId);
+            } else {
+              // If no external handler, add directly to this component's selection
+              setSelectedIds(prev => {
+                if (prev.includes(showId)) return prev;
+                if (prev.length >= 5) return [...prev.slice(1), showId];
+                return [...prev, showId];
+              });
+            }
+          }}
+        />
       )}
     </div>
   );
