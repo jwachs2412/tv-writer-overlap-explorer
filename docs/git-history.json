@@ -1,5 +1,13 @@
 [
   {
+    "hash": "9aa3ce277e2f513197a71c151b86f36388f05227",
+    "short_hash": "9aa3ce2",
+    "author": "Bobby Nathan",
+    "date": "2026-01-21T12:27:32-05:00",
+    "message": "feat: Add 5-show Venn diagram and clickable writer modal\n\n- Expand Venn diagram to support up to 5 shows:\n  - Added orange and violet colors for shows 4 and 5\n  - Implemented 4-show (2x2 grid) and 5-show (pentagon) positioning\n  - Generalized intersection calculation for any number of shows\n\n- Add WriterShowsModal component:\n  - Clicking writer names opens modal showing all their shows\n  - Each show displays title, years, episode count\n  - \"Add to Venn\" button to add shows directly to comparison\n  - Closes on ESC or backdrop click\n\n- Integrate modal in both ShowBrowser and VennDiagram\n- Lift Venn selection state to App.tsx for cross-component coordination\n- Add VennDiagram controlled mode for external state management\n- Add tests for new components",
+    "files_changed": 10
+  },
+  {
     "hash": "6824dfee77d6f20a145d1e911b4fc51b628e1d23",
     "short_hash": "6824dfe",
     "author": "Wachsman, Joshua",

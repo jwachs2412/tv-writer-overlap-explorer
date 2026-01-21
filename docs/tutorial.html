@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build the TV Writer Overlap Explorer - Tutorial</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: #fff;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    nav {
+      width: 260px;
+      background: #f8f9fa;
+      border-right: 1px solid #e9ecef;
+      padding: 1.5rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    nav h1 {
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    nav ul { list-style: none; }
+
+    nav li { margin: 0.3rem 0; }
+
+    nav a {
+      color: #495057;
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: block;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    nav a:hover { background: #e9ecef; }
+
+    nav .chapter {
+      font-weight: 600;
+      color: #212529;
+      margin-top: 1rem;
+    }
+
+    /* Main content */
+    main {
+      flex: 1;
+      max-width: 750px;
+      padding: 2rem 3rem;
+      margin: 0 auto;
+    }
+
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-top: 1.5rem; border-top: 1px solid #e9ecef; }
+    h3 { font-size: 1.2rem; margin: 2rem 0 0.75rem; }
+
+    p { margin: 1rem 0; }
+
+    .subtitle {
+      color: #6c757d;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Code blocks */
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 1rem 0;
+    }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85em;
+      background: #f1f3f4;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    /* Terminal prompt styling */
+    .terminal {
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 0.85rem;
+      margin: 1rem 0;
+      line-height: 1.6;
+    }
+
+    .terminal .prompt { color: #7ee787; }
+    .terminal .comment { color: #8b949e; }
+    .terminal .output { color: #8b949e; }
+
+    /* Instruction boxes */
+    .do-this {
+      background: #e7f5ff;
+      border-left: 4px solid #339af0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .do-this strong {
+      color: #1971c2;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .checkpoint {
+      background: #d3f9d8;
+      border-left: 4px solid #40c057;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .checkpoint strong {
+      color: #2f9e44;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .decision {
+      background: #f3e8ff;
+      border-left: 4px solid #9333ea;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+    }
+
+    .decision strong { color: #7c3aed; }
+
+    .learn-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .learn-box strong {
+      color: #0369a1;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .learn-box ul { margin: 0.5rem 0 0 0; }
+
+    .troubleshoot {
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .troubleshoot strong {
+      color: #dc2626;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .definition {
+      background: #fefce8;
+      border-left: 4px solid #facc15;
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+    }
+
+    .definition strong { color: #a16207; }
+
+    /* File creation boxes */
+    .file-header {
+      background: #343a40;
+      color: #f8f9fa;
+      padding: 0.5rem 1rem;
+      border-radius: 6px 6px 0 0;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.8rem;
+      margin-top: 1rem;
+      margin-bottom: 0;
+    }
+
+    .file-header + pre {
+      margin-top: 0;
+      border-radius: 0 0 6px 6px;
+    }
+
+    /* Lists */
+    ul, ol { margin: 1rem 0; padding-left: 1.5rem; }
+    li { margin: 0.4rem 0; }
+
+    /* Review questions */
+    .review {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin: 2rem 0;
+    }
+
+    .review h4 {
+      margin: 0 0 1rem;
+      font-size: 1rem;
+    }
+
+    .review ol { margin: 0; }
+
+    /* Links */
+    a { color: #339af0; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .layout { flex-direction: column; }
+      nav {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+      }
+      main { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <h1>Tutorial</h1>
+      <ul>
+        <li><a href="#start" class="chapter">Getting Started</a></li>
+        <li><a href="#chapter-1" class="chapter">1. The Scraper</a></li>
+        <li><a href="#ch1-create-files">Create the files</a></li>
+        <li><a href="#ch1-first-scrape">Your first scrape</a></li>
+        <li><a href="#ch1-save-to-db">Save to database</a></li>
+        <li><a href="#chapter-2" class="chapter">2. The API</a></li>
+        <li><a href="#ch2-create-server">Create the server</a></li>
+        <li><a href="#ch2-test-it">Test it</a></li>
+        <li><a href="#chapter-3" class="chapter">3. The Frontend</a></li>
+        <li><a href="#ch3-setup-react">Set up React</a></li>
+        <li><a href="#ch3-fetch-data">Fetch data</a></li>
+        <li><a href="#ch3-types">Add types</a></li>
+        <li><a href="#chapter-4" class="chapter">4. Visualizations</a></li>
+        <li><a href="#ch4-venn">Venn diagram</a></li>
+        <li><a href="#ch4-matrix">Matrix heatmap</a></li>
+        <li><a href="#chapter-5" class="chapter">5. Testing</a></li>
+        <li><a href="#chapter-6" class="chapter">6. Deploy</a></li>
+        <li><a href="#review" class="chapter">Review Questions</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <h1>Build the TV Writer Overlap Explorer</h1>
+      <p class="subtitle">A hands-on tutorial from zero to deployed app.</p>
+
+      <p>In this tutorial, you'll build a web app that shows connections between TV shows through their shared writers. You'll scrape data from IMDB, store it in a database, serve it via an API, and visualize it with React.</p>
+
+      <p>You'll type every line of code yourself. By the end, you'll understand exactly how it works.</p>
+
+      <div class="learn-box">
+        <strong>What you'll learn in this tutorial:</strong>
+        <ul>
+          <li><strong>Web scraping</strong> &mdash; Automatically downloading data from websites</li>
+          <li><strong>Databases</strong> &mdash; Storing and querying structured data</li>
+          <li><strong>APIs</strong> &mdash; Making your data accessible over the internet</li>
+          <li><strong>React</strong> &mdash; Building interactive user interfaces</li>
+          <li><strong>TypeScript</strong> &mdash; Adding type safety to JavaScript</li>
+          <li><strong>Testing</strong> &mdash; Verifying your code works correctly</li>
+        </ul>
+      </div>
+
+      <div class="warning">
+        <strong>New to programming?</strong>
+        This tutorial assumes you know basic programming concepts (variables, functions, loops). If you've "vibe coded" before&mdash;copying and pasting code without fully understanding it&mdash;this tutorial will help you understand <em>why</em> each piece exists.
+      </div>
+
+      <!-- ========== GETTING STARTED ========== -->
+      <h2 id="start">Getting Started</h2>
+
+      <p>Before we begin, make sure you have these installed:</p>
+      <ul>
+        <li><strong>Python 3.8+</strong> &mdash; check with <code>python3 --version</code></li>
+        <li><strong>Node.js 18+</strong> &mdash; check with <code>node --version</code></li>
+        <li><strong>A code editor</strong> &mdash; VS Code works great</li>
+      </ul>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create your project folder and open it in your editor.
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> mkdir tv-writer-explorer
+<span class="prompt">$</span> cd tv-writer-explorer
+<span class="prompt">$</span> mkdir scraper data
+<span class="prompt">$</span> code .  <span class="comment"># or open in your editor</span>
+      </div>
+
+      <p>Your folder structure should look like this:</p>
+
+      <pre>tv-writer-explorer/
+  scraper/     <span style="color:#6a9955"># Python code goes here</span>
+  data/        <span style="color:#6a9955"># Database will be created here</span></pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Install the Python libraries we need.
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> pip3 install requests beautifulsoup4 lxml
+      </div>
+
+      <div class="checkpoint">
+        <strong>Checkpoint:</strong>
+        Run <code>pip3 list | grep -i beautifulsoup</code>. You should see <code>beautifulsoup4</code> in the output.
+      </div>
+
+      <!-- ========== CHAPTER 1: THE SCRAPER ========== -->
+      <h2 id="chapter-1">Chapter 1: The Scraper</h2>
+
+      <div class="learn-box">
+        <strong>What you'll learn in this chapter:</strong>
+        <ul>
+          <li>How to download web pages with Python's <code>requests</code> library</li>
+          <li>How to extract data from HTML using BeautifulSoup</li>
+          <li>Why we parse JSON instead of HTML when possible</li>
+          <li>How to be a "good citizen" when scraping (rate limiting)</li>
+        </ul>
+      </div>
+
+      <div class="definition">
+        <strong>Web scraper:</strong> A program that automatically downloads web pages and extracts specific data from them. It's like copying data by hand, but automated.
+      </div>
+
+      <p>We'll scrape IMDB to get TV show writer credits.</p>
+
+      <h3 id="ch1-create-files">Create the files</h3>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create a new file called <code>scraper/imdb_scraper.py</code> and type this exactly:
+      </div>
+
+      <div class="file-header">scraper/imdb_scraper.py</div>
+<pre>"""
+IMDB scraper for TV show writers.
+We'll build this up piece by piece.
+"""
+import requests
+from bs4 import BeautifulSoup
+import json
+import time
+
+# Pretend to be a browser so IMDB doesn't block us
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+}
+
+
+def get_show_writers(imdb_id):
+    """
+    Given an IMDB ID like 'tt0238784', return a list of writers.
+
+    Each writer is a dict with: name, imdb_id, episode_count
+    """
+    url = f"https://www.imdb.com/title/{imdb_id}/fullcredits/"
+
+    print(f"  Fetching {url}")
+    response = requests.get(url, headers=HEADERS, timeout=30)
+    response.raise_for_status()  # Crash if something went wrong
+
+    soup = BeautifulSoup(response.text, "lxml")
+    writers = []
+
+    # IMDB puts data in a JSON blob. Let's find it.
+    script = soup.find("script", id="__NEXT_DATA__")
+    if not script:
+        print("  Warning: Could not find data on page")
+        return []
+
+    data = json.loads(script.get_text())
+
+    # Navigate the nested JSON to find writers
+    # It's like opening folders: props > pageProps > contentData > categories
+    try:
+        categories = data["props"]["pageProps"]["contentData"]["categories"]
+    except KeyError:
+        print("  Warning: Unexpected page structure")
+        return []
+
+    # Find the "Writing" category
+    for cat in categories:
+        if "writ" in cat.get("name", "").lower():
+            items = cat.get("section", {}).get("items", [])
+            for item in items:
+                writer_id = item.get("id", "")
+                name = item.get("rowTitle", "")
+                ep_count = item.get("episodicCreditData", {}).get("episodeCount")
+
+                if writer_id and name:
+                    writers.append({
+                        "imdb_id": writer_id,
+                        "name": name,
+                        "episode_count": ep_count
+                    })
+
+    return writers
+
+
+# Let's test it!
+if __name__ == "__main__":
+    print("Testing with Gilmore Girls (tt0238784)...")
+    writers = get_show_writers("tt0238784")
+    print(f"Found {len(writers)} writers:")
+    for w in writers[:5]:
+        print(f"  - {w['name']} ({w['episode_count']} episodes)")
+</pre>
+
+      <h3 id="ch1-first-scrape">Your first scrape</h3>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Run the scraper to test it.
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> cd scraper
+<span class="prompt">$</span> python3 imdb_scraper.py
+      </div>
+
+      <div class="checkpoint">
+        <strong>You should see:</strong>
+        <pre style="background:#d3f9d8; color:#1a1a1a; margin-top:0.5rem">Testing with Gilmore Girls (tt0238784)...
+  Fetching https://www.imdb.com/title/tt0238784/fullcredits/
+Found 47 writers:
+  - Amy Sherman-Palladino (89 episodes)
+  - Daniel Palladino (45 episodes)
+  - ...</pre>
+      </div>
+
+      <p>Congratulations! You just scraped IMDB. The scraper:</p>
+      <ol>
+        <li>Downloaded the "full credits" page for Gilmore Girls</li>
+        <li>Found the JSON data that IMDB embeds in the page</li>
+        <li>Extracted the writers from the "Writing" section</li>
+      </ol>
+
+      <div class="troubleshoot">
+        <strong>Troubleshooting:</strong>
+        <ul>
+          <li><strong>"ModuleNotFoundError: No module named 'requests'"</strong> &mdash; Run <code>pip3 install requests beautifulsoup4 lxml</code> again</li>
+          <li><strong>"ConnectionError" or "Timeout"</strong> &mdash; Check your internet connection. IMDB might be slow; try again.</li>
+          <li><strong>"Found 0 writers"</strong> &mdash; IMDB may have changed their page structure. The <code>__NEXT_DATA__</code> JSON format occasionally changes.</li>
+          <li><strong>Different number of writers</strong> &mdash; That's normal! IMDB updates their data, so you might see slightly different numbers.</li>
+        </ul>
+      </div>
+
+      <div class="decision">
+        <strong>Decision made:</strong> We parse JSON instead of HTML. IMDB embeds structured data in a <code>&lt;script id="__NEXT_DATA__"&gt;</code> tag. This is more reliable than parsing HTML, which changes frequently.
+      </div>
+
+      <h3 id="ch1-save-to-db">Save to database</h3>
+
+      <p>Scraped data is useless if we lose it when the program ends. Let's save it to a <strong>SQLite database</strong>.</p>
+
+      <div class="definition">
+        <strong>SQLite:</strong> A database that stores all its data in a single file on your computer. Unlike PostgreSQL or MySQL, it doesn't need a separate server running&mdash;your Python code reads and writes the file directly. Perfect for small to medium projects.
+      </div>
+
+      <div class="definition">
+        <strong>Table:</strong> A structured collection of data, like a spreadsheet. Each row is one record (one show, one writer), and each column is a property (id, name, title).
+      </div>
+
+      <div class="definition">
+        <strong>Junction table:</strong> A table that connects two other tables in a many-to-many relationship. One writer can work on many shows, and one show can have many writers. The <code>show_writers</code> table holds these connections.
+      </div>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create <code>scraper/database.py</code>:
+      </div>
+
+      <div class="file-header">scraper/database.py</div>
+<pre>"""
+SQLite database for storing shows and writers.
+"""
+import sqlite3
+from pathlib import Path
+
+# __file__ is the current file's path. We go up one folder (parent.parent)
+# to get to the project root, then into data/
+DB_PATH = Path(__file__).parent.parent / "data" / "writers.db"
+
+
+def get_connection():
+    """Get a database connection."""
+    # Create the data/ folder if it doesn't exist
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    # Connect to the database file (creates it if it doesn't exist)
+    conn = sqlite3.connect(DB_PATH)
+
+    # This lets us access columns by name (row["title"]) instead of index (row[2])
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    """Create the tables if they don't exist."""
+    conn = get_connection()
+
+    # executescript runs multiple SQL statements at once
+    conn.executescript("""
+        -- The 'shows' table: one row per TV show
+        -- PRIMARY KEY means 'id' auto-increments (1, 2, 3...)
+        -- UNIQUE means no two shows can have the same imdb_id
+        CREATE TABLE IF NOT EXISTS shows (
+            id INTEGER PRIMARY KEY,
+            imdb_id TEXT UNIQUE NOT NULL,
+            title TEXT NOT NULL
+        );
+
+        -- The 'writers' table: one row per writer
+        CREATE TABLE IF NOT EXISTS writers (
+            id INTEGER PRIMARY KEY,
+            imdb_id TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL
+        );
+
+        -- The 'junction table' that connects shows and writers
+        -- Each row says "writer X worked on show Y for Z episodes"
+        -- PRIMARY KEY (show_id, writer_id) means each show-writer pair is unique
+        -- FOREIGN KEY means these IDs must exist in the other tables
+        CREATE TABLE IF NOT EXISTS show_writers (
+            show_id INTEGER,
+            writer_id INTEGER,
+            episode_count INTEGER,
+            PRIMARY KEY (show_id, writer_id),
+            FOREIGN KEY (show_id) REFERENCES shows(id),
+            FOREIGN KEY (writer_id) REFERENCES writers(id)
+        );
+    """)
+
+    # commit() saves changes to disk
+    conn.commit()
+    conn.close()
+    print(f"Database initialized at {DB_PATH}")
+
+
+def insert_show(imdb_id, title):
+    """Insert a show, return its ID. If exists, return existing ID."""
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # Check if already exists
+    cur.execute("SELECT id FROM shows WHERE imdb_id = ?", (imdb_id,))
+    row = cur.fetchone()
+    if row:
+        conn.close()
+        return row["id"]
+
+    # Insert new
+    cur.execute("INSERT INTO shows (imdb_id, title) VALUES (?, ?)", (imdb_id, title))
+    show_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return show_id
+
+
+def insert_writer(imdb_id, name):
+    """Insert a writer, return their ID. If exists, return existing ID."""
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id FROM writers WHERE imdb_id = ?", (imdb_id,))
+    row = cur.fetchone()
+    if row:
+        conn.close()
+        return row["id"]
+
+    cur.execute("INSERT INTO writers (imdb_id, name) VALUES (?, ?)", (imdb_id, name))
+    writer_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return writer_id
+
+
+def link_show_writer(show_id, writer_id, episode_count):
+    """Link a writer to a show."""
+    conn = get_connection()
+    try:
+        conn.execute(
+            "INSERT OR IGNORE INTO show_writers VALUES (?, ?, ?)",
+            (show_id, writer_id, episode_count)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_all_shows():
+    """Get all shows."""
+    conn = get_connection()
+    rows = conn.execute("SELECT * FROM shows ORDER BY title").fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def get_overlapping_writers():
+    """Find writers who worked on multiple shows."""
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT w.id, w.name, w.imdb_id, COUNT(sw.show_id) as show_count
+        FROM writers w
+        JOIN show_writers sw ON w.id = sw.writer_id
+        GROUP BY w.id
+        HAVING COUNT(sw.show_id) > 1
+        ORDER BY show_count DESC
+    """).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+if __name__ == "__main__":
+    init_db()
+    print("Done!")
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Initialize the database.
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> python3 database.py
+<span class="output">Database initialized at /path/to/tv-writer-explorer/data/writers.db</span>
+      </div>
+
+      <div class="checkpoint">
+        <strong>Checkpoint:</strong>
+        Check that the database file was created: <code>ls ../data/</code> should show <code>writers.db</code>.
+      </div>
+
+      <p>Now let's update the scraper to save data to the database. </p>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Add this to the bottom of <code>imdb_scraper.py</code>, replacing the existing <code>if __name__ == "__main__":</code> block:
+      </div>
+
+      <div class="file-header">scraper/imdb_scraper.py (add to end)</div>
+<pre>from database import init_db, insert_show, insert_writer, link_show_writer, get_overlapping_writers
+
+
+def scrape_show(imdb_id, title):
+    """Scrape a show and save to database."""
+    print(f"\nScraping: {title}")
+
+    # Save show
+    show_id = insert_show(imdb_id, title)
+
+    # Be nice to IMDB - wait 1 second
+    time.sleep(1)
+
+    # Get writers
+    writers = get_show_writers(imdb_id)
+    print(f"  Found {len(writers)} writers")
+
+    # Save each writer
+    for w in writers:
+        writer_id = insert_writer(w["imdb_id"], w["name"])
+        link_show_writer(show_id, writer_id, w["episode_count"])
+
+    return len(writers)
+
+
+if __name__ == "__main__":
+    # Initialize database
+    init_db()
+
+    # Shows to scrape (IMDB ID, Title)
+    SHOWS = [
+        ("tt0238784", "Gilmore Girls"),
+        ("tt0285403", "Scrubs"),
+        ("tt1235547", "Better Off Ted"),
+        ("tt0367279", "Arrested Development"),
+        ("tt0118480", "Brooklyn Nine-Nine"),
+    ]
+
+    print("Starting scrape...")
+    for imdb_id, title in SHOWS:
+        scrape_show(imdb_id, title)
+        time.sleep(2)  # Be nice to IMDB
+
+    print("\n" + "="*50)
+    print("Done! Checking for overlapping writers...")
+    overlaps = get_overlapping_writers()
+    print(f"Found {len(overlaps)} writers who worked on multiple shows:")
+    for w in overlaps[:10]:
+        print(f"  - {w['name']}: {w['show_count']} shows")
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Run the full scrape. This will take about 15 seconds because of rate limiting.
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> python3 imdb_scraper.py
+      </div>
+
+      <div class="checkpoint">
+        <strong>You should see:</strong>
+        <pre style="background:#d3f9d8; color:#1a1a1a; margin-top:0.5rem">Starting scrape...
+
+Scraping: Gilmore Girls
+  Found 47 writers
+
+Scraping: Scrubs
+  Found 51 writers
+...
+
+==================================================
+Done! Checking for overlapping writers...
+Found 3 writers who worked on multiple shows:
+  - Jhoni Marchinko: 2 shows
+  ...</pre>
+      </div>
+
+      <p>You now have a database with TV shows and their writers. The key query is <code>get_overlapping_writers()</code> - it finds writers who appear in multiple shows by using <code>GROUP BY</code> and <code>HAVING COUNT > 1</code>.</p>
+
+      <div class="review">
+        <h4>Check your understanding</h4>
+        <ol>
+          <li>Why do we call <code>time.sleep(1)</code> between requests?</li>
+          <li>What does <code>PRIMARY KEY (show_id, writer_id)</code> prevent?</li>
+          <li>What SQL clause finds writers on 2+ shows?</li>
+        </ol>
+      </div>
+
+      <!-- ========== CHAPTER 2: THE API ========== -->
+      <h2 id="chapter-2">Chapter 2: The API</h2>
+
+      <div class="learn-box">
+        <strong>What you'll learn in this chapter:</strong>
+        <ul>
+          <li>What an API is and why we need one</li>
+          <li>How to create an HTTP server in Python</li>
+          <li>How to return JSON data from endpoints</li>
+          <li>What CORS is and why browsers care about it</li>
+        </ul>
+      </div>
+
+      <p>The database has our data, but the frontend can't talk to SQLite directly. We need an <strong>API</strong>.</p>
+
+      <div class="definition">
+        <strong>API (Application Programming Interface):</strong> A way for programs to talk to each other. Our API is a web server that responds to HTTP requests with JSON data. The frontend asks "give me all shows" and the API responds with the data.
+      </div>
+
+      <div class="definition">
+        <strong>HTTP:</strong> The protocol browsers use to fetch web pages. When you visit a URL, your browser makes an HTTP "GET" request. Our API listens for these requests and responds with data.
+      </div>
+
+      <div class="definition">
+        <strong>JSON (JavaScript Object Notation):</strong> A text format for sending structured data. It looks like <code>{"name": "Amy", "episodes": 89}</code>. Both Python and JavaScript can read and write JSON easily.
+      </div>
+
+      <h3 id="ch2-create-server">Create the server</h3>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create <code>scraper/api.py</code>:
+      </div>
+
+      <div class="file-header">scraper/api.py</div>
+<pre>"""
+Simple API server that serves our data as JSON.
+"""
+# HTTPServer listens for requests; BaseHTTPRequestHandler handles them
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+from database import get_all_shows, get_overlapping_writers, get_connection
+
+
+def get_all_data():
+    """Get all data for the frontend."""
+    conn = get_connection()
+
+    # Run three queries to get all our data
+    shows = conn.execute("SELECT * FROM shows").fetchall()
+    writers = conn.execute("SELECT * FROM writers").fetchall()
+    links = conn.execute("SELECT * FROM show_writers").fetchall()
+
+    conn.close()
+
+    # Convert SQLite Row objects to regular dicts for JSON
+    return {
+        "shows": [dict(r) for r in shows],
+        "writers": [dict(r) for r in writers],
+        "links": [dict(r) for r in links],
+    }
+
+
+# Our custom request handler - defines what to do for each URL
+class Handler(BaseHTTPRequestHandler):
+    def send_json(self, data):
+        """Helper to send a JSON response."""
+        self.send_response(200)  # 200 = "OK, success!"
+
+        # Tell the browser "this is JSON data"
+        self.send_header("Content-Type", "application/json")
+
+        # CORS header - allows ANY website to fetch from this API
+        # Without this, browsers block cross-origin requests
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+
+        # Convert Python dict to JSON string, then to bytes
+        self.wfile.write(json.dumps(data).encode())
+
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests.
+        Browsers send OPTIONS before certain requests to check if they're allowed."""
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET")
+        self.end_headers()
+
+    def do_GET(self):
+        """Handle GET requests - called when someone visits a URL."""
+        # self.path is the URL path, like "/api/all"
+        if self.path == "/api/all":
+            self.send_json(get_all_data())
+        elif self.path == "/api/shows":
+            self.send_json(get_all_shows())
+        elif self.path == "/api/overlaps":
+            self.send_json(get_overlapping_writers())
+        else:
+            # 404 = "Not Found"
+            self.send_response(404)
+            self.end_headers()
+
+
+# This runs when you execute "python api.py" directly
+if __name__ == "__main__":
+    # Create a server listening on localhost port 8080
+    server = HTTPServer(("localhost", 8080), Handler)
+    print("API running at http://localhost:8080")
+    print("Try: http://localhost:8080/api/shows")
+    print("Press Ctrl+C to stop")
+
+    # Start listening forever (until you press Ctrl+C)
+    server.serve_forever()
+</pre>
+
+      <h3 id="ch2-test-it">Test it</h3>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Start the API server.
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> python3 api.py
+<span class="output">API running at http://localhost:8080</span>
+<span class="output">Try: http://localhost:8080/api/shows</span>
+      </div>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        In a <em>new terminal</em>, test the API:
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> curl http://localhost:8080/api/shows
+<span class="output">[{"id": 1, "imdb_id": "tt0238784", "title": "Gilmore Girls"}, ...]</span>
+      </div>
+
+      <div class="checkpoint">
+        <strong>Checkpoint:</strong>
+        Open <code>http://localhost:8080/api/all</code> in your browser. You should see JSON with shows, writers, and links.
+      </div>
+
+      <p>The API server:</p>
+      <ol>
+        <li>Listens for HTTP requests on port 8080</li>
+        <li>When someone requests <code>/api/all</code>, queries the database</li>
+        <li>Returns the data as JSON</li>
+        <li>Includes <code>Access-Control-Allow-Origin: *</code> so browsers allow the frontend to access it</li>
+      </ol>
+
+      <div class="definition">
+        <strong>CORS (Cross-Origin Resource Sharing):</strong> A browser security feature. By default, a web page at <code>localhost:5173</code> (our React app) can't fetch data from <code>localhost:8080</code> (our API) because they're different "origins". The <code>Access-Control-Allow-Origin: *</code> header tells the browser "it's okay, let anyone access this data."
+      </div>
+
+      <div class="troubleshoot">
+        <strong>Troubleshooting:</strong>
+        <ul>
+          <li><strong>"Address already in use"</strong> &mdash; Another program is using port 8080. Either stop that program or change the port number in api.py to 8081.</li>
+          <li><strong>Browser shows "Failed to fetch"</strong> &mdash; The API server isn't running. Check your terminal&mdash;did you see "API running at..."?</li>
+          <li><strong>curl: command not found</strong> &mdash; On Windows, use PowerShell's <code>Invoke-WebRequest http://localhost:8080/api/shows</code> instead, or just open the URL in your browser.</li>
+        </ul>
+      </div>
+
+      <p>Keep this server running. We'll need it for the frontend.</p>
+
+      <!-- ========== CHAPTER 3: THE FRONTEND ========== -->
+      <h2 id="chapter-3">Chapter 3: The Frontend</h2>
+
+      <div class="learn-box">
+        <strong>What you'll learn in this chapter:</strong>
+        <ul>
+          <li>How to create a React + TypeScript project with Vite</li>
+          <li>How to fetch data from an API and display it</li>
+          <li>The "Functional Core, Imperative Shell" architecture pattern</li>
+          <li>Why TypeScript's <code>readonly</code> helps prevent bugs</li>
+        </ul>
+      </div>
+
+      <div class="definition">
+        <strong>React:</strong> A JavaScript library for building user interfaces. Instead of manipulating HTML directly, you describe <em>what</em> the UI should look like, and React figures out <em>how</em> to update it efficiently.
+      </div>
+
+      <div class="definition">
+        <strong>TypeScript:</strong> JavaScript with type checking. It catches errors before your code runs. If you accidentally pass a string where a number is expected, TypeScript tells you immediately instead of crashing at runtime.
+      </div>
+
+      <div class="definition">
+        <strong>Vite:</strong> A fast build tool for web projects. It handles compiling TypeScript, bundling your code, and providing a development server with hot reload (changes appear instantly without refreshing).
+      </div>
+
+      <p>Now we'll build the React frontend that displays our data.</p>
+
+      <h3 id="ch3-setup-react">Set up React</h3>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        In a new terminal (keep the API running!), create the React app:
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> cd ..  <span class="comment"># back to tv-writer-explorer root</span>
+<span class="prompt">$</span> npm create vite@latest webapp -- --template react-ts
+<span class="prompt">$</span> cd webapp
+<span class="prompt">$</span> npm install
+      </div>
+
+      <div class="checkpoint">
+        <strong>Checkpoint:</strong>
+        Run <code>npm run dev</code>. Open <code>http://localhost:5173</code> in your browser. You should see the Vite + React welcome page. Press Ctrl+C to stop it for now.
+      </div>
+
+      <div class="troubleshoot">
+        <strong>Troubleshooting:</strong>
+        <ul>
+          <li><strong>"npm: command not found"</strong> &mdash; Node.js isn't installed or not in your PATH. Download it from nodejs.org.</li>
+          <li><strong>EACCES permission error</strong> &mdash; On Mac/Linux, don't use <code>sudo</code>. Fix npm permissions or use nvm (Node Version Manager).</li>
+          <li><strong>Page won't load</strong> &mdash; Make sure you're going to <code>http://localhost:5173</code> (not 5174 or another port). Check the terminal for the actual URL.</li>
+        </ul>
+      </div>
+
+      <h3 id="ch3-fetch-data">Fetch data from the API</h3>
+
+      <p>Let's fetch data from our API and display it.</p>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Replace the contents of <code>webapp/src/App.tsx</code> with:
+      </div>
+
+      <div class="file-header">webapp/src/App.tsx</div>
+<pre>import { useState, useEffect } from 'react'
+
+// The shape of our data (we'll make proper types later)
+interface Show {
+  id: number
+  imdb_id: string
+  title: string
+}
+
+interface Writer {
+  id: number
+  imdb_id: string
+  name: string
+}
+
+interface Link {
+  show_id: number
+  writer_id: number
+  episode_count: number
+}
+
+interface AppData {
+  shows: Show[]
+  writers: Writer[]
+  links: Link[]
+}
+
+function App() {
+  // State: the data we fetched (or null if not yet loaded)
+  const [data, setData] = useState&lt;AppData | null&gt;(null)
+  const [error, setError] = useState&lt;string | null&gt;(null)
+
+  // Fetch data when the component mounts
+  useEffect(() => {
+    fetch('http://localhost:8080/api/all')
+      .then(res => res.json())
+      .then(json => setData(json))
+      .catch(err => setError(err.message))
+  }, [])
+
+  // Show loading state
+  if (error) return &lt;div&gt;Error: {error}&lt;/div&gt;
+  if (!data) return &lt;div&gt;Loading...&lt;/div&gt;
+
+  return (
+    &lt;div style={{ padding: '2rem', fontFamily: 'system-ui' }}&gt;
+      &lt;h1&gt;TV Writer Overlap Explorer&lt;/h1&gt;
+
+      &lt;h2&gt;Shows ({data.shows.length})&lt;/h2&gt;
+      &lt;ul&gt;
+        {data.shows.map(show =&gt; (
+          &lt;li key={show.id}&gt;{show.title}&lt;/li&gt;
+        ))}
+      &lt;/ul&gt;
+
+      &lt;h2&gt;Writers ({data.writers.length})&lt;/h2&gt;
+      &lt;p&gt;{data.writers.slice(0, 10).map(w =&gt; w.name).join(', ')}...&lt;/p&gt;
+
+      &lt;h2&gt;Links ({data.links.length})&lt;/h2&gt;
+      &lt;p&gt;{data.links.length} show-writer connections in database.&lt;/p&gt;
+    &lt;/div&gt;
+  )
+}
+
+export default App
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Start the React dev server (make sure the API is still running!):
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> npm run dev
+      </div>
+
+      <div class="checkpoint">
+        <strong>Checkpoint:</strong>
+        Open <code>http://localhost:5173</code>. You should see your shows listed! If you see "Error: Failed to fetch", make sure the API server is running on port 8080.
+      </div>
+
+      <h3 id="ch3-types">Organize with the Functional Core pattern</h3>
+
+      <p>Right now all our code is in one file. Let's organize it using <strong>Functional Core, Imperative Shell</strong>.</p>
+
+      <div class="definition">
+        <strong>Pure function:</strong> A function that (1) always returns the same output for the same input, and (2) has no side effects (doesn't change anything outside itself). Example: <code>add(2, 3)</code> always returns 5 and doesn't modify any variables or make network calls.
+      </div>
+
+      <div class="definition">
+        <strong>Side effect:</strong> When a function does something besides returning a value&mdash;like saving to a database, making an API call, or modifying a global variable. Side effects are necessary but make code harder to test and reason about.
+      </div>
+
+      <div class="definition">
+        <strong>Functional Core, Imperative Shell:</strong> An architecture pattern that separates pure functions (the "core") from code with side effects (the "shell"). The core is easy to test&mdash;just check that outputs match expected values. The shell handles the messy real-world stuff (network, database, user input).
+      </div>
+
+      <p>We'll put our code in two folders:</p>
+      <ul>
+        <li><strong>src/core/</strong>: Pure functions that transform data. No side effects. Easy to test.</li>
+        <li><strong>src/shell/</strong>: Code that talks to the outside world (API calls, etc.)</li>
+      </ul>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create the folder structure:
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> mkdir -p src/core src/shell
+      </div>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create <code>src/core/types.ts</code> with our type definitions:
+      </div>
+
+      <div class="file-header">webapp/src/core/types.ts</div>
+<pre>/**
+ * Domain types. All properties are readonly to enforce immutability.
+ */
+
+export interface Show {
+  readonly id: number
+  readonly imdbId: string
+  readonly title: string
+}
+
+export interface Writer {
+  readonly id: number
+  readonly imdbId: string
+  readonly name: string
+}
+
+export interface Link {
+  readonly showId: number
+  readonly writerId: number
+  readonly episodeCount: number | null
+}
+
+export interface ShowWithWriters extends Show {
+  readonly writers: readonly Writer[]
+}
+
+export interface AppData {
+  readonly shows: readonly Show[]
+  readonly writers: readonly Writer[]
+  readonly links: readonly Link[]
+}
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create <code>src/core/overlap.ts</code> with pure functions:
+      </div>
+
+      <div class="file-header">webapp/src/core/overlap.ts</div>
+<pre>/**
+ * Pure functions for computing overlaps.
+ * No side effects - just data in, data out.
+ */
+import type { Show, Writer, Link, ShowWithWriters } from './types'
+
+/**
+ * Attach writers to each show.
+ */
+export function enrichShowsWithWriters(
+  shows: readonly Show[],
+  writers: readonly Writer[],
+  links: readonly Link[]
+): ShowWithWriters[] {
+  const writerMap = new Map(writers.map(w => [w.id, w]))
+
+  return shows.map(show => {
+    const showWriters = links
+      .filter(link => link.showId === show.id)
+      .map(link => writerMap.get(link.writerId))
+      .filter((w): w is Writer => w !== undefined)
+
+    return { ...show, writers: showWriters }
+  })
+}
+
+/**
+ * Count shared writers between two shows.
+ */
+export function countSharedWriters(
+  showA: ShowWithWriters,
+  showB: ShowWithWriters
+): number {
+  const writerIdsA = new Set(showA.writers.map(w => w.id))
+  return showB.writers.filter(w => writerIdsA.has(w.id)).length
+}
+
+/**
+ * Get writers that appear in both shows.
+ */
+export function getSharedWriters(
+  showA: ShowWithWriters,
+  showB: ShowWithWriters
+): Writer[] {
+  const writerIdsA = new Set(showA.writers.map(w => w.id))
+  return showB.writers.filter(w => writerIdsA.has(w.id))
+}
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create <code>src/shell/api.ts</code> with the API client:
+      </div>
+
+      <div class="file-header">webapp/src/shell/api.ts</div>
+<pre>/**
+ * API client - the "shell" that talks to the outside world.
+ */
+import type { Show, Writer, Link, AppData } from '../core/types'
+
+const API_BASE = 'http://localhost:8080/api'
+
+// Raw API response (snake_case from Python)
+interface RawData {
+  shows: { id: number; imdb_id: string; title: string }[]
+  writers: { id: number; imdb_id: string; name: string }[]
+  links: { show_id: number; writer_id: number; episode_count: number }[]
+}
+
+// Transform snake_case to camelCase
+function transformShow(raw: RawData['shows'][0]): Show {
+  return {
+    id: raw.id,
+    imdbId: raw.imdb_id,
+    title: raw.title,
+  }
+}
+
+function transformWriter(raw: RawData['writers'][0]): Writer {
+  return {
+    id: raw.id,
+    imdbId: raw.imdb_id,
+    name: raw.name,
+  }
+}
+
+function transformLink(raw: RawData['links'][0]): Link {
+  return {
+    showId: raw.show_id,
+    writerId: raw.writer_id,
+    episodeCount: raw.episode_count,
+  }
+}
+
+export async function fetchAllData(): Promise&lt;AppData&gt; {
+  const response = await fetch(`${API_BASE}/all`)
+  if (!response.ok) throw new Error(`API error: ${response.status}`)
+
+  const raw: RawData = await response.json()
+
+  return {
+    shows: raw.shows.map(transformShow),
+    writers: raw.writers.map(transformWriter),
+    links: raw.links.map(transformLink),
+  }
+}
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Update <code>src/App.tsx</code> to use the new modules:
+      </div>
+
+      <div class="file-header">webapp/src/App.tsx</div>
+<pre>import { useState, useEffect } from 'react'
+import type { AppData, ShowWithWriters } from './core/types'
+import { enrichShowsWithWriters, countSharedWriters } from './core/overlap'
+import { fetchAllData } from './shell/api'
+
+function App() {
+  const [data, setData] = useState&lt;AppData | null&gt;(null)
+  const [error, setError] = useState&lt;string | null&gt;(null)
+
+  useEffect(() => {
+    fetchAllData()
+      .then(setData)
+      .catch(err => setError(err.message))
+  }, [])
+
+  if (error) return &lt;div&gt;Error: {error}&lt;/div&gt;
+  if (!data) return &lt;div&gt;Loading...&lt;/div&gt;
+
+  // Enrich shows with their writers
+  const showsWithWriters = enrichShowsWithWriters(
+    data.shows,
+    data.writers,
+    data.links
+  )
+
+  return (
+    &lt;div style={{ padding: '2rem', fontFamily: 'system-ui' }}&gt;
+      &lt;h1&gt;TV Writer Overlap Explorer&lt;/h1&gt;
+
+      &lt;h2&gt;Shows&lt;/h2&gt;
+      {showsWithWriters.map(show =&gt; (
+        &lt;div key={show.id} style={{ marginBottom: '1rem' }}&gt;
+          &lt;strong&gt;{show.title}&lt;/strong&gt;
+          &lt;span style={{ color: '#666' }}&gt; ({show.writers.length} writers)&lt;/span&gt;
+        &lt;/div&gt;
+      ))}
+
+      &lt;h2&gt;Overlap Matrix&lt;/h2&gt;
+      &lt;OverlapMatrix shows={showsWithWriters} /&gt;
+    &lt;/div&gt;
+  )
+}
+
+function OverlapMatrix({ shows }: { shows: ShowWithWriters[] }) {
+  return (
+    &lt;table style={{ borderCollapse: 'collapse' }}&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th&gt;&lt;/th&gt;
+          {shows.map(s =&gt; (
+            &lt;th key={s.id} style={{ padding: '0.5rem', fontSize: '0.8rem' }}&gt;
+              {s.title.slice(0, 10)}...
+            &lt;/th&gt;
+          ))}
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        {shows.map(showA =&gt; (
+          &lt;tr key={showA.id}&gt;
+            &lt;td style={{ padding: '0.5rem', fontWeight: 'bold' }}&gt;
+              {showA.title}
+            &lt;/td&gt;
+            {shows.map(showB =&gt; {
+              const count = countSharedWriters(showA, showB)
+              const isself = showA.id === showB.id
+              return (
+                &lt;td
+                  key={showB.id}
+                  style={{
+                    padding: '0.5rem',
+                    textAlign: 'center',
+                    background: isself ? '#eee' : count > 0 ? '#d4edda' : '#fff',
+                    border: '1px solid #ddd'
+                  }}
+                &gt;
+                  {count}
+                &lt;/td&gt;
+              )
+            })}
+          &lt;/tr&gt;
+        ))}
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  )
+}
+
+export default App
+</pre>
+
+      <div class="checkpoint">
+        <strong>Checkpoint:</strong>
+        Refresh your browser. You should see a table showing how many writers each pair of shows has in common!
+      </div>
+
+      <div class="decision">
+        <strong>Architecture decision:</strong> We separated pure functions (core/overlap.ts) from side effects (shell/api.ts). The pure functions are easy to test - just check that the output matches expectations for a given input. No mocking needed.
+      </div>
+
+      <!-- ========== CHAPTER 4: VISUALIZATIONS ========== -->
+      <h2 id="chapter-4">Chapter 4: Better Visualizations</h2>
+
+      <div class="learn-box">
+        <strong>What you'll learn in this chapter:</strong>
+        <ul>
+          <li>How to create interactive UI components in React</li>
+          <li>Managing component state with <code>useState</code></li>
+          <li>Passing data between components with props</li>
+        </ul>
+      </div>
+
+      <div class="definition">
+        <strong>useState:</strong> A React "hook" that lets your component remember things. <code>useState([])</code> creates a variable that starts as an empty array. When you update it with the setter function, React automatically re-renders the component to show the new data.
+      </div>
+
+      <div class="definition">
+        <strong>Props:</strong> Short for "properties"&mdash;how you pass data from a parent component to a child. Like function arguments, but for components. The parent decides what data to pass; the child receives it as read-only.
+      </div>
+
+      <p>The overlap matrix works, but let's add a Venn diagram for comparing specific shows.</p>
+
+      <h3 id="ch4-venn">Venn diagram</h3>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create <code>src/components/VennDiagram.tsx</code>:
+      </div>
+
+      <div class="file-header">webapp/src/components/VennDiagram.tsx</div>
+<pre>import { useState } from 'react'
+import type { ShowWithWriters, Writer } from '../core/types'
+import { getSharedWriters } from '../core/overlap'
+
+interface Props {
+  shows: ShowWithWriters[]
+}
+
+export function VennDiagram({ shows }: Props) {
+  const [selected, setSelected] = useState&lt;number[]&gt;([])
+
+  const toggle = (id: number) => {
+    if (selected.includes(id)) {
+      setSelected(selected.filter(s => s !== id))
+    } else if (selected.length < 3) {
+      setSelected([...selected, id])
+    }
+  }
+
+  const selectedShows = shows.filter(s => selected.includes(s.id))
+
+  // Calculate overlaps
+  let shared: Writer[] = []
+  if (selectedShows.length === 2) {
+    shared = getSharedWriters(selectedShows[0], selectedShows[1])
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;h3&gt;Select 2-3 shows to compare:&lt;/h3&gt;
+      &lt;div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}&gt;
+        {shows.map(show =&gt; (
+          &lt;button
+            key={show.id}
+            onClick={() => toggle(show.id)}
+            style={{
+              padding: '0.5rem 1rem',
+              background: selected.includes(show.id) ? '#339af0' : '#e9ecef',
+              color: selected.includes(show.id) ? '#fff' : '#000',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          &gt;
+            {show.title}
+          &lt;/button&gt;
+        ))}
+      &lt;/div&gt;
+
+      {selectedShows.length === 2 && (
+        &lt;div style={{ marginTop: '1rem' }}&gt;
+          &lt;h4&gt;Shared writers ({shared.length}):&lt;/h4&gt;
+          {shared.length === 0 ? (
+            &lt;p&gt;No shared writers.&lt;/p&gt;
+          ) : (
+            &lt;ul&gt;
+              {shared.map(w =&gt; &lt;li key={w.id}&gt;{w.name}&lt;/li&gt;)}
+            &lt;/ul&gt;
+          )}
+        &lt;/div&gt;
+      )}
+
+      {selectedShows.length < 2 && (
+        &lt;p style={{ color: '#666' }}&gt;Select at least 2 shows to see shared writers.&lt;/p&gt;
+      )}
+    &lt;/div&gt;
+  )
+}
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Add the Venn diagram to App.tsx. Import it at the top and add it below the matrix:
+      </div>
+
+<pre>// Add this import at the top of App.tsx:
+import { VennDiagram } from './components/VennDiagram'
+
+// Add this after the OverlapMatrix in the return:
+&lt;h2&gt;Compare Shows&lt;/h2&gt;
+&lt;VennDiagram shows={showsWithWriters} /&gt;
+</pre>
+
+      <div class="checkpoint">
+        <strong>Checkpoint:</strong>
+        Refresh the page. Click on two shows. You should see a list of writers they have in common!
+      </div>
+
+      <!-- ========== CHAPTER 5: TESTING ========== -->
+      <h2 id="chapter-5">Chapter 5: Testing</h2>
+
+      <div class="learn-box">
+        <strong>What you'll learn in this chapter:</strong>
+        <ul>
+          <li>Why testing matters and when to write tests</li>
+          <li>How to write unit tests with Vitest</li>
+          <li>Why pure functions are easier to test</li>
+        </ul>
+      </div>
+
+      <div class="definition">
+        <strong>Unit test:</strong> A test that checks one small piece of code (a "unit") in isolation. You give it input, check the output. If it matches what you expected, the test passes. Unit tests run fast and catch bugs early.
+      </div>
+
+      <div class="definition">
+        <strong>Vitest:</strong> A fast testing framework for JavaScript/TypeScript projects. It understands your TypeScript code and runs tests in milliseconds. It's like Jest but faster and works great with Vite.
+      </div>
+
+      <p>Pure functions are easy to test because they have no side effects. You don't need to mock databases or APIs&mdash;just call the function and check what it returns.</p>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Create <code>src/core/overlap.test.ts</code>:
+      </div>
+
+      <div class="file-header">webapp/src/core/overlap.test.ts</div>
+<pre>import { describe, it, expect } from 'vitest'
+import { countSharedWriters, enrichShowsWithWriters } from './overlap'
+
+describe('countSharedWriters', () => {
+  it('counts writers that appear in both shows', () => {
+    const showA = {
+      id: 1,
+      imdbId: 'tt1',
+      title: 'Show A',
+      writers: [
+        { id: 1, imdbId: 'nm1', name: 'Writer 1' },
+        { id: 2, imdbId: 'nm2', name: 'Writer 2' },
+      ]
+    }
+
+    const showB = {
+      id: 2,
+      imdbId: 'tt2',
+      title: 'Show B',
+      writers: [
+        { id: 2, imdbId: 'nm2', name: 'Writer 2' },  // shared!
+        { id: 3, imdbId: 'nm3', name: 'Writer 3' },
+      ]
+    }
+
+    expect(countSharedWriters(showA, showB)).toBe(1)
+  })
+
+  it('returns 0 when no shared writers', () => {
+    const showA = {
+      id: 1, imdbId: 'tt1', title: 'A',
+      writers: [{ id: 1, imdbId: 'nm1', name: 'W1' }]
+    }
+    const showB = {
+      id: 2, imdbId: 'tt2', title: 'B',
+      writers: [{ id: 2, imdbId: 'nm2', name: 'W2' }]
+    }
+
+    expect(countSharedWriters(showA, showB)).toBe(0)
+  })
+})
+</pre>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Run the tests:
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> npm run test
+      </div>
+
+      <div class="checkpoint">
+        <strong>You should see:</strong>
+        <pre style="background:#d3f9d8; color:#1a1a1a; margin-top:0.5rem"> ✓ src/core/overlap.test.ts (2)
+   ✓ countSharedWriters
+     ✓ counts writers that appear in both shows
+     ✓ returns 0 when no shared writers
+
+ Test Files  1 passed (1)
+ Tests       2 passed (2)</pre>
+      </div>
+
+      <div class="troubleshoot">
+        <strong>Troubleshooting:</strong>
+        <ul>
+          <li><strong>"Cannot find module 'vitest'"</strong> &mdash; Vitest comes with Vite. Make sure you're in the <code>webapp</code> folder and ran <code>npm install</code>.</li>
+          <li><strong>"No test files found"</strong> &mdash; Check that the file is named <code>overlap.test.ts</code> (not <code>.test.js</code>) and is in <code>src/core/</code>.</li>
+          <li><strong>Tests fail</strong> &mdash; Read the error message carefully. It shows what value was expected vs. what was received. Check your function logic.</li>
+        </ul>
+      </div>
+
+      <!-- ========== CHAPTER 6: DEPLOY ========== -->
+      <h2 id="chapter-6">Chapter 6: Deploy</h2>
+
+      <div class="learn-box">
+        <strong>What you'll learn in this chapter:</strong>
+        <ul>
+          <li>How to build your React app for production</li>
+          <li>The difference between development and production builds</li>
+          <li>How to host a static site on GitHub Pages (free!)</li>
+        </ul>
+      </div>
+
+      <div class="definition">
+        <strong>Production build:</strong> A optimized version of your app for real users. The build process minifies code (removes whitespace, shortens variable names), bundles files together, and removes development-only code. The result is smaller and faster.
+      </div>
+
+      <div class="definition">
+        <strong>GitHub Pages:</strong> Free static site hosting from GitHub. You push files to a <code>/docs</code> folder (or a special branch), and GitHub serves them at <code>yourusername.github.io/reponame</code>. Perfect for frontend-only apps.
+      </div>
+
+      <p>Let's put it on the internet using GitHub Pages.</p>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Build the app:
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> npm run build
+      </div>
+
+      <p>This creates optimized files in the <code>dist/</code> folder.</p>
+
+      <div class="do-this">
+        <strong>Do this:</strong>
+        Copy to docs folder and push to GitHub:
+      </div>
+
+      <div class="terminal">
+<span class="prompt">$</span> mkdir -p ../docs
+<span class="prompt">$</span> cp -r dist/* ../docs/
+<span class="prompt">$</span> cd ..
+<span class="prompt">$</span> git add .
+<span class="prompt">$</span> git commit -m "Add webapp"
+<span class="prompt">$</span> git push
+      </div>
+
+      <p>Then go to your repo on GitHub &rarr; Settings &rarr; Pages &rarr; Source: "Deploy from branch" &rarr; Branch: main, folder: /docs &rarr; Save.</p>
+
+      <p>Your app will be live at <code>https://YOUR_USERNAME.github.io/tv-writer-explorer/</code></p>
+
+      <div class="warning">
+        <strong>Important limitation:</strong> GitHub Pages only hosts static files (HTML, CSS, JS). It can't run your Python API server. For the deployed version to work, you'd need to either:
+        <ul>
+          <li>Export your data as a static JSON file and fetch that instead</li>
+          <li>Host the API on a different service (Heroku, Railway, Render, etc.)</li>
+          <li>Use a serverless function (Vercel, Netlify Functions)</li>
+        </ul>
+        For this tutorial, the app works great locally with both servers running.
+      </div>
+
+      <div class="troubleshoot">
+        <strong>Troubleshooting:</strong>
+        <ul>
+          <li><strong>404 error on GitHub Pages</strong> &mdash; Wait 1-2 minutes for GitHub to build. Check Settings &rarr; Pages to see if it's deploying.</li>
+          <li><strong>Blank page</strong> &mdash; Open browser dev tools (F12), check the Console tab for errors. Often a path issue.</li>
+          <li><strong>"Failed to fetch" on deployed site</strong> &mdash; This is expected! The API isn't running on GitHub. See the note above about static hosting.</li>
+        </ul>
+      </div>
+
+      <!-- ========== REVIEW ========== -->
+      <h2 id="review">Review Questions</h2>
+
+      <p>Test your understanding:</p>
+
+      <div class="review">
+        <h4>Chapter 1: Scraping</h4>
+        <ol>
+          <li>Why do we use <code>time.sleep()</code> between requests?</li>
+          <li>Why parse JSON from <code>__NEXT_DATA__</code> instead of HTML?</li>
+          <li>What does <code>response.raise_for_status()</code> do?</li>
+        </ol>
+      </div>
+
+      <div class="review">
+        <h4>Chapter 2: Database</h4>
+        <ol>
+          <li>What is a "junction table" and why do we need <code>show_writers</code>?</li>
+          <li>What does <code>HAVING COUNT > 1</code> do in the overlapping writers query?</li>
+          <li>Why <code>INSERT OR IGNORE</code> instead of just <code>INSERT</code>?</li>
+        </ol>
+      </div>
+
+      <div class="review">
+        <h4>Chapter 3: API</h4>
+        <ol>
+          <li>What is CORS and why do we need <code>Access-Control-Allow-Origin</code>?</li>
+          <li>Why transform snake_case to camelCase at the API boundary?</li>
+        </ol>
+      </div>
+
+      <div class="review">
+        <h4>Chapter 4: Frontend</h4>
+        <ol>
+          <li>What makes a function "pure"?</li>
+          <li>Why is <code>readonly</code> useful on type properties?</li>
+          <li>Why separate "core" from "shell"?</li>
+        </ol>
+      </div>
+
+      <div class="review">
+        <h4>Chapter 5: Testing</h4>
+        <ol>
+          <li>Why are pure functions easy to test?</li>
+          <li>What's the difference between unit tests and integration tests?</li>
+        </ol>
+      </div>
+
+      <hr style="margin: 3rem 0">
+
+      <p>Congratulations! You built a full-stack web application from scratch. You learned:</p>
+      <ul>
+        <li><strong>Web scraping</strong> with Python</li>
+        <li><strong>Database design</strong> with SQLite</li>
+        <li><strong>API development</strong> with Python's http.server</li>
+        <li><strong>React + TypeScript</strong> for the frontend</li>
+        <li><strong>Functional Core / Imperative Shell</strong> architecture</li>
+        <li><strong>Testing</strong> pure functions</li>
+        <li><strong>Deployment</strong> to GitHub Pages</li>
+      </ul>
+
+      <p><a href="../index.html">&larr; View the finished app</a></p>
+    </main>
+  </div>
+</body>
+</html>
