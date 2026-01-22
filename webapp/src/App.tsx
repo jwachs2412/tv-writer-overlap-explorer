@@ -4,9 +4,10 @@ import { VennDiagram } from './components/VennDiagram';
 import { MatrixHeatmap } from './components/MatrixHeatmap';
 import { ShowBrowser } from './components/ShowBrowser';
 import { WriterDirectory } from './components/WriterDirectory';
+import { LearningSchedule } from './components/LearningSchedule';
 import { fetchAllData, type AppData } from './shell/api';
 
-type ViewMode = 'both' | 'compare' | 'matrix' | 'browse' | 'writers';
+type ViewMode = 'both' | 'compare' | 'matrix' | 'browse' | 'writers' | 'learn';
 
 function App() {
   const [data, setData] = useState<AppData | null>(null);
@@ -133,6 +134,12 @@ function App() {
           >
             Writers
           </button>
+          <button
+            className={viewMode === 'learn' ? 'active' : ''}
+            onClick={() => setViewMode('learn')}
+          >
+            Learn
+          </button>
         </nav>
       </header>
 
@@ -174,6 +181,12 @@ function App() {
         {viewMode === 'writers' && (
           <section className="visualization">
             <WriterDirectory />
+          </section>
+        )}
+
+        {viewMode === 'learn' && (
+          <section className="visualization">
+            <LearningSchedule />
           </section>
         )}
       </main>
